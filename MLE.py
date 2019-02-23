@@ -50,36 +50,33 @@ def dataset_process(filename, is_train, mean):
 if __name__ == '__main__':
     trainfilename = 'propublicaTrain.csv'
     testfilename = 'propublicaTrain.csv'
+
+    # Note, for MLE, the normalization of the dataset is crucial.
     y_gt, features, type_0, type_1, mean = dataset_process(trainfilename, True, [])
 
     test_y_gt, test_features, test_type_0, test_type_1,_ = dataset_process(testfilename, False, mean)
 
-    print('type0', type_0)
-    print('type1', type_1)
-
     mean0 = np.mean(type_0, axis=0)
     mean1 = np.mean(type_1, axis=0)
 
-    print('mean0', mean0, 'mean1', mean1)
-
     A0 = type_0 - mean0 # [len, 9]
     A1 = type_1 - mean1 # [l2, 9]
-
-    print("****A0")
-    print(A0.shape)
-    print("****A1")
-    print(A1)
-    print("****")
+    #
+    # print("****A0")
+    # print(A0.shape)
+    # print("****A1")
+    # print(A1)
+    # print("****")
 
     sigma0 = np.dot(np.transpose(A0), A0) / A0.shape[0]
     sigma1 = np.dot(np.transpose(A1), A1) / A1.shape[0]
 
     # print(sigma0)
-    print("***sigma1*")
-    print(sigma1)
+    # print("***sigma1*")
+    # print(sigma1)
 
-    print(np.linalg.det(sigma0))
-    print(np.linalg.det(sigma1))
+    # print(np.linalg.det(sigma0))
+    # print(np.linalg.det(sigma1))
 
     # print(sigma0, sigma1)
     # print(sigma0.shape, np.linalg.inv(sigma0))
