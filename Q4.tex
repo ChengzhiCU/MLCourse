@@ -1,0 +1,140 @@
+% --------------------------------------------------------------
+% This is all preamble stuff that you don't have to worry about.
+% Head down to where it says "Start here"
+% --------------------------------------------------------------
+ 
+\documentclass[12pt]{article}
+ 
+\usepackage[margin=1in]{geometry} 
+\usepackage{amsmath,amsthm,amssymb}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{enumitem}
+\usepackage{graphicx}
+
+
+
+
+\newcommand{\N}{\mathbb{N}}
+\newcommand{\Z}{\mathbb{Z}}
+ 
+\newenvironment{theorem}[2][Theorem]{\begin{trivlist}
+\item[\hskip \labelsep {\bfseries #1}\hskip \labelsep {\bfseries #2.}]}{\end{trivlist}}
+\newenvironment{lemma}[2][Lemma]{\begin{trivlist}
+\item[\hskip \labelsep {\bfseries #1}\hskip \labelsep {\bfseries #2.}]}{\end{trivlist}}
+\newenvironment{exercise}[2][Exercise]{\begin{trivlist}
+\item[\hskip \labelsep {\bfseries #1}\hskip \labelsep {\bfseries #2.}]}{\end{trivlist}}
+\newenvironment{reflection}[2][Reflection]{\begin{trivlist}
+\item[\hskip \labelsep {\bfseries #1}\hskip \labelsep {\bfseries #2.}]}{\end{trivlist}}
+\newenvironment{proposition}[2][Proposition]{\begin{trivlist}
+\item[\hskip \labelsep {\bfseries #1}\hskip \labelsep {\bfseries #2.}]}{\end{trivlist}}
+\newenvironment{corollary}[2][Corollary]{\begin{trivlist}
+\item[\hskip \labelsep {\bfseries #1}\hskip \labelsep {\bfseries #2.}]}{\end{trivlist}}
+ 
+\begin{document}
+ 
+% --------------------------------------------------------------
+%                         Start here
+% --------------------------------------------------------------
+ 
+%\renewcommand{\qedsymbol}{\filledbox}
+ 
+\title{4771}%replace X with the appropriate number
+% * <465193583@qq.com> 2018-09-27T02:33:46.626Z:
+%
+% ^.
+\author{Zhuangyu Ren(zr2209)\\ %replace with your name
+} %if necessary, replace with your course title
+ 
+\maketitle
+ \indent 
+\section*{Question 4}
+\begin{enumerate}
+	\item 
+	From the problem we know that:\\
+	$$Pr[s=1|x, y=0]=0$$\\
+	So using bayes formula we have:\\
+	$$Pr[s=1|x, y=0]=\frac{Pr[s=1]\cdot Pr[y=0|x,s=1]}{Pr[y=0|x]}=0$$\\
+	Because $Pr[y=0|x]$ and $Pr[s=1]$ should not equal to 0, so \\
+	$$Pr[y=0|x,s=1]=0$$\\
+	Thus $Pr[y=1|x,s=1]=1$\\
+	By bayes:
+	$$Pr[y=1|x,s=1]=\frac{Pr[y=1|x]\cdot Pr[s=1|x,y=1]}{Pr[s=1|x]}=1$$\\
+	As given y, s and x are conditionally independent, $Pr[s=1|x,y=1]=Pr[s=1|y=1]$\\
+	So, \\
+	$$\frac{Pr[y=1|x]\cdot Pr[s=1|y=1]}{Pr[s=1|x]}=1$$
+	$$Pr[y=1|x]=\frac{Pr[s=1|x]}{Pr[s=1|y=1]}$$
+	\\
+	\\
+	Here is another way of doing this:\\
+	$$Pr[y=1|x]\cdot Pr[s=1|y=1]=Pr[s=1,y=1|x]$$
+	Also we have 
+	$$Pr[s=1|x,y=1]=\frac{Pr[s=1,y=0|x]}{Pr[s=1|x]}=0\Rightarrow Pr[s=1,y=0|x]=0$$
+	So
+	$$Pr[y=1|x]\cdot Pr[s=1|y=1]=Pr[s=1,y=1|x]+Pr[s=1,y=0|x]=Pr[s=1|x]$$
+	$$\Rightarrow Pr[y=1|x]=\frac{Pr[s=1|x]}{Pr[s=1|y=1]}$$
+	
+	
+	\item
+	From problem 1 we know that\\
+	$$Pr[y=1|x,s=0]=\frac{Pr[y=1|x]\cdot Pr[s=0|x,y=1]}{Pr[s=0|x]}=\frac{Pr[s=1|x]}{Pr[s=1|y=1]}\cdot \frac{Pr[s=0|x,y=1]}{Pr[s=0|x]}$$
+	Also \\
+	$$Pr[s=0|x]=1-Pr[s=1|x]$$
+	$$Pr[s=0|x,y=1]=1-Pr[s=1|x,y=1]$$
+	As given y, s and x are conditionally independent, $Pr[s=1|x,y=1]=Pr[s=1|y=1]$\\
+	So the origin formula can be written as:\\
+	$$Pr[y=1|x,s=0]=\frac{1-Pr[s=1|y=1]}{Pr[s=1|y=1]}\cdot \frac{Pr[s=1|x]}{1-Pr[s=1|x]}$$
+	
+	
+	\item
+	\begin{align*}
+	\mathbb{E}_{(x,y)\sim D}[\textbf{1}[f(x)\neq y]] &= \int _x Pr[f(x)\neq y]dx\\ 
+	&= \int_x Pr[f(x)=1,y=0]+Pr[f(x)=0,y=1]dx\\ 
+	&= \int_x Pr[f(x)=0]\cdot Pr[y=1|x]+Pr[f(x)=1]\cdot Pr[y=0|x]dx\\ 
+	&= \int_x Pr[f(x)=0] (Pr[y=1,s=0|x]+Pr[y=1,s=1|x])\\
+    &\hspace*{0.5in}+Pr[f(x)=1](Pr[y=0,s=0|x]+Pr[y=0,s=1|x])dx\\ 
+	&= \int_x \mathbf{1}[f(x)\neq 1] (Pr[y=1,s=0|x]+Pr[y=1,s=1|x])\\
+	&\hspace*{0.5in}+\mathbf{1}[f(x)\neq 0]\cdot Pr[y=0,s=0|x]dx
+	\end{align*}
+	We have proved that $$Pr[y=1|x,s=1]=\frac{Pr[y=1,s=1|x]}{p(x,s=1)}=1$$\\
+	So $$Pr[y=1,s=1|x]=p(x,s=1)$$\\
+	$$\mathbb{E}_{(x,y)\sim D}[\textbf{1}[f(x)\neq y]] = \int_x \mathbf{1}[f(x)\neq 1]\cdot p(x,s=1)+\mathbf{1}[f(x)\neq 1] \cdot Pr[y=1,s=0|x]$$
+	$$+\mathbf{1}[f(x)\neq 0]\cdot Pr[y=0,s=0|x]dx$$
+	Because $$Pr[y=1,s=0|x]=p(x,s=0)\cdot Pr[y=1|x,s=0]$$
+	and $$Pr[y=0,s=0|x]=p(x,s=0)\cdot Pr[y=0|x,s=0]$$
+	So\\
+	\begin{align*}
+	\mathbb{E}_{(x,y)\sim D}[\textbf{1}[f(x)\neq y]] &= \int_x \mathbf{1}[f(x)\neq 1]\cdot p(x,s=1)\\
+	&\hspace*{0.5in}+p(x,s=0)(Pr[y = 1 | s = 0, x]\cdot \mathbf{1}[f (x)\neq 1]\\
+	&\hspace*{1in}+Pr[y = 0 | s = 0, x]\cdot \mathbf{1}[f (x)\neq 0])dx
+	\end{align*}
+	
+	\item 
+	Under the assumption that there exists $x\in X$ such that $Pr[Y=1|X=x]=1$ then $max_{x\in X}g(x)=Pr[S=1|Y=1]$ where $g(x)=Pr[S=1|X=x]$. Note that g(x) (and hence its max) can be estimated from (x, s) data only.\\
+	Alternatively, $Pr[S=1|Y=1]$ is just a single number (does not depend on X)\\
+	So suppose $c=Pr[s=1|y=1]$, Here, c is the constant probability that a positive example is labeled.\\
+	Let $w(x)=Pr[y=1|x,s=0]$, 
+	\begin{align*}
+	Pr[y=1|x,s=0] &=\frac{1-Pr[s=1|y=1]}{Pr[s=1|y=1]}\cdot \frac{Pr[s=1|x]}{1-Pr[s=1|x]} \\ 
+	&=\frac{1-c}{c}\cdot \frac{Pr[s=1|x]}{1-Pr[s=1|x]}
+	\end{align*}
+	And E can be written as:\\
+	\begin{align*}
+	\mathbb{E}_{(x,y)\sim D}[\textbf{1}[f(x)\neq y]] &= \int_x \mathbf{1}[f(x)\neq 1]\cdot p(x,s=1)\\
+	&\hspace*{0.5in}+p(x,s=0)(Pr[y = 1 | s = 0, x]\cdot \mathbf{1}[f (x)\neq 1]\\
+	&\hspace*{1in}+Pr[y = 0 | s = 0, x]\cdot \mathbf{1}[f (x)\neq 0])dx\\
+	&=\int_x \mathbf{1}[f(x)\neq 1]\cdot p(x,s=1)\\
+	&\hspace*{0.5in}+p(x,s=0)(w(x)\cdot \mathbf{1}[f (x)\neq 1]+(1-w(x))\mathbf{1}[f (x)\neq 0])dx\\
+	\end{align*}
+	As the number of samples is limited,\\
+	$$\mathbb{E}_{(x,y)\sim D}[\textbf{1}[f(x)\neq y]]=\frac{1}{|S|}\left [ \sum_{x,s=1}\mathbf{1}[f(x)\neq 1]+\sum_{x,s=0}(w(x)\cdot \mathbf{1}[f(x)\neq 1]+(1-w(x))\mathbf{1}[f (x)\neq 0]) \right ]$$
+	
+	
+	
+\end{enumerate}
+
+
+% --------------------------------------------------------------
+%     You don't have to mess with anything below this line.
+% --------------------------------------------------------------
+\end{document}
