@@ -7,7 +7,7 @@ from utils import *
 
 if __name__ == '__main__':
     trainfilename = 'propublicaTrain.csv'
-    testfilename = 'propublicaTrain.csv'
+    testfilename = 'propublicaTest.csv'
 
     # Note, for MLE, the normalization of the dataset is crucial.
     y_gt, features, type_0, type_1, mean = dataset_process(trainfilename, True, [])
