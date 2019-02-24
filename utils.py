@@ -1,7 +1,7 @@
 import csv
 import numpy as np
 
-def dataset_process(filename, is_train, mean, int32=False, binfunc=None):
+def dataset_process(filename, is_train, mean, int32=False, binfunc=None, Norm=False, std=None):
     if is_train and int32:
         raise ValueError("Cannot set int32 mode on in train mode (with normalization)")
 
@@ -28,8 +28,13 @@ def dataset_process(filename, is_train, mean, int32=False, binfunc=None):
             # print("shape", features.shape, np.mean(features, axis=0).shape)
             mean = np.mean(features, axis=0)
             features = features - np.mean(features, axis=0)
+            if Norm:
+                std = np.std(features, axis=0)
+                features = features - np.std(features, axis=0)
         else:
             features = features - mean
+            if Norm:
+                features = features / std
 
         type_0 = np.zeros((cnt - int(np.sum(y_gt)), 9))
         type_1 = np.zeros((int(np.sum(y_gt)), 9))
@@ -45,4 +50,7 @@ def dataset_process(filename, is_train, mean, int32=False, binfunc=None):
             elif y_gt[i] == 1:
                 type_1[c1] = features[i]
                 c1 += 1
-    return y_gt, features, type_0, type_1, mean
+    if Norm:
+        return y_gt, features, type_0, type_1, mean, std
+    else:
+        return y_gt, features, type_0, type_1, mean
