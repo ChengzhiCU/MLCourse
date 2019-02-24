@@ -49,7 +49,7 @@ def dataset_process(filename, is_train, mean):
 
 if __name__ == '__main__':
     trainfilename = 'propublicaTrain.csv'
-    testfilename = 'propublicaTrain.csv'
+    testfilename = 'propublicaTest.csv'
 
     # Note, for MLE, the normalization of the dataset is crucial.
     y_gt, features, type_0, type_1, mean = dataset_process(trainfilename, True, [])
@@ -97,10 +97,10 @@ if __name__ == '__main__':
                                                                                    np.linalg.inv(sigma1)), np.transpose(data-mean1))
 
         if p_y0 >= p_y1:
-            if y_gt[i] == 0:
+            if test_y_gt[i] == 0:
                 correct += 1
         else:
-            if y_gt[i] == 1:
+            if test_y_gt[i] == 1:
                 correct += 1
 
     print("accuracy: {:8f}".format(correct * 1.0 / test_features.shape[0]))
