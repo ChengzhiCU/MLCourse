@@ -5,7 +5,7 @@ from IPython import embed
 
 if __name__ == '__main__':
     trainfilename = 'propublicaTrain.csv'
-    testfilename = 'propublicaTrain.csv'
+    testfilename = 'propublicaTest.csv'
 
     """
     def bin_feat1(x):   # age
@@ -24,6 +24,7 @@ if __name__ == '__main__':
     y_gt, features, type_0, type_1, _ = dataset_process(trainfilename, False, 0, int32=True, binfunc=bins)
     test_y_gt, test_features, test_type_0, test_type_1, _ = dataset_process(testfilename, False, 0, int32=True, binfunc=bins)
 
+    # embed()
     # Training
     N = features.shape[0]
     M = features.shape[1]
@@ -67,10 +68,10 @@ if __name__ == '__main__':
 
     for i in range(test_features.shape[0]):
         data = test_features[i]
-        # p_y0 = logp_Y0
-        # p_y1 = logp_Y1
-        p_y0, p_y1 = np.exp(logp_Y0), np.exp(logp_Y1)
-        for j in range(M):
+        p_y0 = logp_Y0
+        p_y1 = logp_Y1
+        # p_y0, p_y1 = np.exp(logp_Y0), np.exp(logp_Y1)
+        for j in range(1, M):
             featj = data[j]
             """
             if featj not in p_xiy0:
@@ -82,14 +83,13 @@ if __name__ == '__main__':
             else:
                 p_y1 += np.log(p_xiy1[j][featj] / p_xy1[j])
             """
-            p_y0 *= 1e-10 if featj not in p_xiy0[j] else p_xiy0[j][featj] / p_xy0[j]
-            p_y1 *= 1e-10 if featj not in p_xiy1[j] else p_xiy1[j][featj] / p_xy1[j]
-            """
+            # p_y0 *= 1e-10 if featj not in p_xiy0[j] else p_xiy0[j][featj] / p_xy0[j]
+            # p_y1 *= 1e-10 if featj not in p_xiy1[j] else p_xiy1[j][featj] / p_xy1[j]
+            
             tmp = 0 if featj not in p_xiy0[j] else p_xiy0[j][featj]
             p_y0 += np.log( (tmp + alpha) / (p_xy0[j] + diy0[j] * alpha) )
             tmp = 0 if featj not in p_xiy1[j] else p_xiy1[j][featj]
             p_y1 += np.log( (tmp + alpha) / (p_xy1[j] + diy1[j] * alpha) )
-            """
 
         if p_y0 >= p_y1:
             if test_y_gt[i] == 0:
