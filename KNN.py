@@ -21,8 +21,8 @@ if __name__ == '__main__':
     # test_y_gt, test_features, test_type_0, test_type_1, _, _ = dataset_process(testfilename, is_train=False, mean=mean,
     #                                                                         Norm=True, std=std)
 
-    k=11
-
+    k=301
+    print(k)
     correct = 0
     for row in range(test_features.shape[0]):
         x = test_features[row]
