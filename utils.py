@@ -2,6 +2,7 @@ import csv
 import numpy as np
 import numpy.random as nr
 
+
 def dataset_process(filename, is_train, mean, int32=False, binfunc=None, Norm=False, std=None, percent=1.0):
     if is_train and int32:
         raise ValueError("Cannot set int32 mode on in train mode (with normalization)")
@@ -17,12 +18,14 @@ def dataset_process(filename, is_train, mean, int32=False, binfunc=None, Norm=Fa
                     cnt += 1
 
         y_gt = np.zeros((cnt, 1))
+        race_gt = np.zeros((cnt, 1))
         features = np.zeros((cnt, 9))
         if int32:
             y_gt, features = y_gt.astype('int32'), features.astype('int32')
 
         for i, row_list in enumerate(row_str_list):
             y_gt[i] = int(row_list[0])
+            race_gt[i] = int(row_list[3])
             for j in range(1, 10):
                 features[i, j-1] = row_list[j] if binfunc is None else binfunc[j-1](row_list[j])
 
@@ -53,6 +56,6 @@ def dataset_process(filename, is_train, mean, int32=False, binfunc=None, Norm=Fa
                 type_1[c1] = features[i]
                 c1 += 1
     if Norm:
-        return y_gt, features, type_0, type_1, mean, std
+        return y_gt, race_gt, features, type_0, type_1, mean, std
     else:
-        return y_gt, features, type_0, type_1, mean
+        return y_gt, race_gt, features, type_0, type_1, mean
