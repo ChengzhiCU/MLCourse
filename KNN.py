@@ -5,16 +5,13 @@ from utils import *
 # print("features", features)
 # print("gt", y_gt)
 
-
-
-
-if __name__ == '__main__':
+def KNN(percent=1.0):
     trainfilename = 'propublicaTrain.csv'
     testfilename = 'propublicaTest.csv'
 
     #filename, is_train, mean, int32=False, binfunc=None, Norm=False, std=None
 
-    y_gt, features, type_0, type_1, mean = dataset_process(trainfilename, is_train= True, mean=[], Norm=False, std=[])
+    y_gt, features, type_0, type_1, mean = dataset_process(trainfilename, is_train= True, mean=[], Norm=False, std=[], percent=percent)
     test_y_gt, test_features, test_type_0, test_type_1, _ = dataset_process(testfilename, is_train=False, mean=mean, Norm=False)
 
     # y_gt, features, type_0, type_1, mean, std = dataset_process(trainfilename, is_train=True, mean=[], Norm=True, std=[])
@@ -56,6 +53,30 @@ if __name__ == '__main__':
                 correct += 1
 
     print("accuracy: {:8f}".format(correct * 1.0 / test_features.shape[0]))
+    return correct * 1.0 / test_features.shape[0]
 
+if __name__ == '__main__':
+
+    xs = []
+    ys = []
+    for i in range(20):
+        tmp = 0.0
+        try:
+            for j in range(10):
+                percent = (i + 1) / 20.
+                acc = KNN(percent=percent)
+                tmp += acc
+        except:
+            # Sampled dataset size < k
+            pass
+        xs.append(percent)
+        ys.append(tmp / 10.)
+    import matplotlib.pyplot as plt
+    plt.plot(xs, ys)
+    plt.xlabel("Dataset Percentage")
+    plt.ylabel("Accuracy")
+    plt.title("KNN")
+    plt.savefig('KNN.png')
+    plt.clf()
 
 

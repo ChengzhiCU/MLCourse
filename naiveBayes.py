@@ -1,9 +1,8 @@
 
 import numpy as np
 from utils import *
-from IPython import embed
 
-if __name__ == '__main__':
+def naive_bayes(percent=1.0):
     trainfilename = 'propublicaTrain.csv'
     testfilename = 'propublicaTest.csv'
 
@@ -21,10 +20,9 @@ if __name__ == '__main__':
     bins = [binid, bin_feat1, binid, binid, binid, binid, binid, binid, binid]
     """
     bins = None
-    y_gt, features, type_0, type_1, _ = dataset_process(trainfilename, False, 0, int32=True, binfunc=bins)
+    y_gt, features, type_0, type_1, _ = dataset_process(trainfilename, False, 0, int32=True, binfunc=bins, percent=percent)
     test_y_gt, test_features, test_type_0, test_type_1, _ = dataset_process(testfilename, False, 0, int32=True, binfunc=bins)
 
-    # embed()
     # Training
     N = features.shape[0]
     M = features.shape[1]
@@ -64,7 +62,6 @@ if __name__ == '__main__':
 
     correct = 0
     alpha = 1                       # additive smoothing factor
-    # embed()
 
     for i in range(test_features.shape[0]):
         data = test_features[i]
@@ -98,7 +95,27 @@ if __name__ == '__main__':
             if test_y_gt[i] == 1:
                 correct += 1
 
-    print("accuracy: {:8f}".format(correct * 1.0 / test_features.shape[0]))
+    print("percentage = {}, accuracy: {:8f}".format(percent, correct * 1.0 / test_features.shape[0]))
+    return correct * 1.0 / test_features.shape[0]
 
+
+if __name__ == '__main__':
+    xs = []
+    ys = []
+    for i in range(20):
+        tmp = 0.0
+        for j in range(10):
+            percent = (i + 1) / 20.
+            acc = naive_bayes(percent=percent)
+            tmp += acc
+        xs.append(percent)
+        ys.append(tmp / 10.)
+    import matplotlib.pyplot as plt
+    plt.plot(xs, ys)
+    plt.xlabel("Dataset Percentage")
+    plt.ylabel("Accuracy")
+    plt.title("Naive Bayes")
+    plt.savefig('naiveBayes.png')
+    plt.clf()
 
 

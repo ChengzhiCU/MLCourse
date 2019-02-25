@@ -1,7 +1,8 @@
 import csv
 import numpy as np
+import numpy.random as nr
 
-def dataset_process(filename, is_train, mean, int32=False, binfunc=None, Norm=False, std=None):
+def dataset_process(filename, is_train, mean, int32=False, binfunc=None, Norm=False, std=None, percent=1.0):
     if is_train and int32:
         raise ValueError("Cannot set int32 mode on in train mode (with normalization)")
 
@@ -11,8 +12,9 @@ def dataset_process(filename, is_train, mean, int32=False, binfunc=None, Norm=Fa
         row_str_list=[]
         for i, row in enumerate(csv_reader):
             if len(row)>1 and i>0:
-                row_str_list.append(row)
-                cnt += 1
+                if nr.random() <= percent:
+                    row_str_list.append(row)
+                    cnt += 1
 
         y_gt = np.zeros((cnt, 1))
         features = np.zeros((cnt, 9))
