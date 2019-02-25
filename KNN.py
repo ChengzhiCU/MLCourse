@@ -72,7 +72,7 @@ if __name__ == '__main__':
         xs.append(percent)
         ys.append(tmp / 10.)
     import matplotlib.pyplot as plt
-    plt.plot(xs, ys)
+    plt.plot(xs[1:], ys[1:])
     plt.xlabel("Dataset Percentage")
     plt.ylabel("Accuracy")
     plt.title("KNN")
