@@ -29,10 +29,10 @@ def MLE(percent=1.0):
     # print(A1)
     # print("****")
 
-    sigma0 = np.dot(np.transpose(A0), A0) / A0.shape[0]
-    sigma1 = np.dot(np.transpose(A1), A1) / A1.shape[0]
+    sigma0 = np.dot(np.transpose(A0), A0) / A0.shape[0] + np.diag([1e-7 for _ in range(9)])
+    sigma1 = np.dot(np.transpose(A1), A1) / A1.shape[0] + np.diag([1e-7 for _ in range(9)])
 
-    embed()
+    # embed()
 
     # print(sigma0)
     # print("***sigma1*")
