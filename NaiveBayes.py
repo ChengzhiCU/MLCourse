@@ -1,65 +1,68 @@
-
 import numpy as np
 from utils import *
 
-# print("features", features)
-# print("gt", y_gt)
 
-from IPython import embed
-
-def MLE(percent=1.0):
-
+def naive_bayes(percent=1.0):
     trainfilename = 'propublicaTrain.csv'
     testfilename = 'propublicaTest.csv'
 
-    # Note, for MLE, the normalization of the dataset is crucial.
-    y_gt, _, features, type_0, type_1, mean = dataset_process(trainfilename, True, [], percent=percent)
+    """
+    def bin_feat1(x):   # age
+        x = float(x)
+        return int(x/5)
 
-    test_y_gt, test_race_gt, test_features, test_type_0, test_type_1,_ = dataset_process(testfilename, False, mean)
+    def bin_feat6(x):   # count
+        x = float(x)
+        return int(x/3)
 
-    mean0 = np.mean(type_0, axis=0)
-    mean1 = np.mean(type_1, axis=0)
+    binid = lambda x: x
+    bins = None
+    bins = [binid, bin_feat1, binid, binid, binid, binid, binid, binid, binid]
+    """
+    bins = None
+    y_gt, _, features, type_0, type_1, _ = dataset_process(trainfilename, False, 0, int32=True, binfunc=bins,
+                                                        percent=percent)
+    test_y_gt, test_race_gt, test_features, test_type_0, test_type_1, _ = dataset_process(testfilename, False, 0, int32=True,
+                                                                            binfunc=bins)
 
-    A0 = type_0 - mean0 # [len, 9]
-    A1 = type_1 - mean1 # [l2, 9]
-    #
-    # print("****A0")
-    # print(A0.shape)
-    # print("****A1")
-    # print(A1)
-    # print("****")
+    # Training
+    N = features.shape[0]
+    M = features.shape[1]
 
-    sigma0 = np.dot(np.transpose(A0), A0) / A0.shape[0] + np.diag([1e-7 for _ in range(9)])
-    sigma1 = np.dot(np.transpose(A1), A1) / A1.shape[0] + np.diag([1e-7 for _ in range(9)])
+    # Prior
+    logp_Y0 = np.log(len(type_0) / N)
+    logp_Y1 = np.log(len(type_1) / N)
 
-    # embed()
+    # Likelihood
+    p_xiy0 = [{} for _ in range(M)]  # Count P(x|y)
+    p_xiy1 = [{} for _ in range(M)]
+    p_xy0 = [0 for _ in range(M)]  # Sum P(x|y)
+    p_xy1 = [0 for _ in range(M)]
+    diy0 = [0 for _ in range(M)]  # d in additive smoothing
+    diy1 = [0 for _ in range(M)]
 
-    # print(sigma0)
-    # print("***sigma1*")
-    # print(sigma1)
+    for y0sample in type_0:
+        for i in range(M):
+            feati = y0sample[i]
+            if feati not in p_xiy0[i]:
+                p_xiy0[i][feati] = 0
+            p_xiy0[i][feati] += 1
+    for i in range(M):
+        p_xy0[i] = sum(p_xiy0[i].values())
+        diy0[i] = len(p_xiy0[i].keys())
 
-    # print(np.linalg.det(sigma0))
-    # print(np.linalg.det(sigma1))
-
-    # print(sigma0, sigma1)
-    # print(sigma0.shape, np.linalg.inv(sigma0))
-
-    inv_simgma0 = np.linalg.inv(sigma0)
-    inv_simgma1 = np.linalg.inv(sigma1)
-
-    # for class 0
+    for y1sample in type_1:
+        for i in range(M):
+            feati = y1sample[i]
+            if feati not in p_xiy1[i]:
+                p_xiy1[i][feati] = 0
+            p_xiy1[i][feati] += 1
+    for i in range(M):
+        p_xy1[i] = sum(p_xiy1[i].values())
+        diy1[i] = len(p_xiy1[i].keys())
 
     correct = 0
-
-    r0_true_pos = 0
-    r0_false_pos = 0
-    r0_true_neg = 0
-    r0_false_neg = 0
-
-    r1_true_pos = 0
-    r1_false_pos = 0
-    r1_true_neg = 0
-    r1_false_neg = 0
+    alpha = 1  # additive smoothing factor
 
     r0_PP_0_0 = 0
     r0_PP_0_1 = 0
@@ -89,11 +92,35 @@ def MLE(percent=1.0):
 
     for i in range(test_features.shape[0]):
         data = test_features[i]
-        p_y0 = - 0.5 * np.log(np.abs(np.linalg.det(sigma0))) - 0.5 * np.dot(np.dot((data-mean0),
-                                                                                   np.linalg.inv(sigma0)), np.transpose(data-mean0))
+        p_y0 = logp_Y0
+        p_y1 = logp_Y1
+        # p_y0, p_y1 = np.exp(logp_Y0), np.exp(logp_Y1)
+        for j in range(1, M):
+            featj = data[j]
+            """
+            if featj not in p_xiy0:
+                p_y0 = -np.inf
+            else:
+                p_y0 += np.log(p_xiy0[j][featj] / p_xy0[j])
+            if featj not in p_xiy1:
+                p_y1 = -np.inf
+            else:
+                p_y1 += np.log(p_xiy1[j][featj] / p_xy1[j])
+            """
+            # p_y0 *= 1e-10 if featj not in p_xiy0[j] else p_xiy0[j][featj] / p_xy0[j]
+            # p_y1 *= 1e-10 if featj not in p_xiy1[j] else p_xiy1[j][featj] / p_xy1[j]
 
-        p_y1 = - 0.5 * np.log(np.abs(np.linalg.det(sigma1))) - 0.5 * np.dot(np.dot((data-mean1),
-                                                                                   np.linalg.inv(sigma1)), np.transpose(data-mean1))
+            tmp = 0 if featj not in p_xiy0[j] else p_xiy0[j][featj]
+            p_y0 += np.log((tmp + alpha) / (p_xy0[j] + diy0[j] * alpha))
+            tmp = 0 if featj not in p_xiy1[j] else p_xiy1[j][featj]
+            p_y1 += np.log((tmp + alpha) / (p_xy1[j] + diy1[j] * alpha))
+
+        if p_y0 >= p_y1:
+            if test_y_gt[i] == 0:
+                correct += 1
+        else:
+            if test_y_gt[i] == 1:
+                correct += 1
 
 
         if test_race_gt[i] == 0:  # Race
@@ -163,16 +190,8 @@ def MLE(percent=1.0):
                 else:
                     r1_EO_1_1 += 1
 
-        #
-        # if test_y_gt[i] == 1:
-        #     if test_race_gt[i] == 0:  # Race
-        #         r0_gt += 1
-        #     else:
-        #         r1_gt += 1
-
-
     print("accuracy: {:8f}".format(correct * 1.0 / test_features.shape[0]))
-    print("DP: R0 y=0 {:8f}".format(DP_r0_0  * 1.0 / r0_num))
+    print("DP: R0 y=0 {:8f}".format(DP_r0_0 * 1.0 / r0_num))
     print("DP: R0 y=1 {:8f}".format(DP_r0_1 * 1.0 / r0_num))
     print("DP: R1 y=0 {:8f}".format(DP_r1_0 * 1.0 / r1_num))
     print("DP: R1 y=1 {:8f}".format(DP_r1_1 * 1.0 / r1_num))
@@ -202,26 +221,28 @@ def MLE(percent=1.0):
     print("PP: R1 Y=0 | Y_hat=1 {:8f}".format(r1_PP_0_1 * 1.0 / (r1_PP_0_1 + r1_PP_1_1 + epis)))
     print("PP: R1 Y=1 | Y_hat=1 {:8f}".format(r1_PP_1_1 * 1.0 / (r1_PP_0_1 + r1_PP_1_1 + epis)))
 
+    # print("percentage = {}, accuracy: {:8f}".format(percent, correct * 1.0 / test_features.shape[0]))
     return correct * 1.0 / test_features.shape[0]
 
-if __name__ == '__main__':
 
+if __name__ == '__main__':
     # xs = []
     # ys = []
     # for i in range(20):
     #     tmp = 0.0
     #     for j in range(10):
     #         percent = (i + 1) / 20.
-    #         acc = MLE(percent=percent)
+    #         acc = naive_bayes(percent=percent)
     #         tmp += acc
     #     xs.append(percent)
     #     ys.append(tmp / 10.)
     # import matplotlib.pyplot as plt
+    #
     # plt.plot(xs, ys)
     # plt.xlabel("Dataset Percentage")
     # plt.ylabel("Accuracy")
-    # plt.title("MLE")
-    # plt.savefig('MLE.png')
+    # plt.title("Naive Bayes")
+    # plt.savefig('naiveBayes.png')
     # plt.clf()
 
-    MLE(percent=1)
+    naive_bayes(percent=1)

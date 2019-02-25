@@ -20,8 +20,8 @@ def naive_bayes(percent=1.0):
     bins = [binid, bin_feat1, binid, binid, binid, binid, binid, binid, binid]
     """
     bins = None
-    y_gt, features, type_0, type_1, _ = dataset_process(trainfilename, False, 0, int32=True, binfunc=bins, percent=percent)
-    test_y_gt, test_features, test_type_0, test_type_1, _ = dataset_process(testfilename, False, 0, int32=True, binfunc=bins)
+    y_gt, _, features, type_0, type_1, _ = dataset_process(trainfilename, False, 0, int32=True, binfunc=bins, percent=percent)
+    test_y_gt, _, test_features, test_type_0, test_type_1, _ = dataset_process(testfilename, False, 0, int32=True, binfunc=bins)
 
     # Training
     N = features.shape[0]

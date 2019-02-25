@@ -176,15 +176,15 @@ def KNN(percent=1.0):
     print("EO: R1 Y_hat=1 | Y=1 {:8f}".format(r1_EO_1_1 * 1.0 / (r1_EO_0_1 + r1_EO_1_1 + epis)))
     print()
 
-    print("PP: R0 Y_hat=0 | Y=0 {:8f}".format(r0_PP_0_0 * 1.0 / (r0_PP_0_0 + r0_PP_1_0 + epis)))
-    print("PP: R0 Y_hat=1 | Y=0 {:8f}".format(r0_PP_1_0 * 1.0 / (r0_PP_0_0 + r0_PP_1_0 + epis)))
-    print("PP: R0 Y_hat=0 | Y=1 {:8f}".format(r0_PP_0_1 * 1.0 / (r0_PP_0_1 + r0_PP_1_1 + epis)))
-    print("PP: R0 Y_hat=1 | Y=1 {:8f}".format(r0_PP_1_1 * 1.0 / (r0_PP_0_1 + r0_PP_1_1 + epis)))
+    print("PP: R0 Y=0 | Y_hat=0 {:8f}".format(r0_PP_0_0 * 1.0 / (r0_PP_0_0 + r0_PP_1_0 + epis)))
+    print("PP: R0 Y=1 | Y_hat=0 {:8f}".format(r0_PP_1_0 * 1.0 / (r0_PP_0_0 + r0_PP_1_0 + epis)))
+    print("PP: R0 Y=0 | Y_hat=1 {:8f}".format(r0_PP_0_1 * 1.0 / (r0_PP_0_1 + r0_PP_1_1 + epis)))
+    print("PP: R0 Y=1 | Y_hat=1 {:8f}".format(r0_PP_1_1 * 1.0 / (r0_PP_0_1 + r0_PP_1_1 + epis)))
 
-    print("PP: R1 Y_hat=0 | Y=0 {:8f}".format(r1_PP_0_0 * 1.0 / (r1_PP_0_0 + r1_PP_1_0 + epis)))
-    print("PP: R1 Y_hat=1 | Y=0 {:8f}".format(r1_PP_1_0 * 1.0 / (r1_PP_0_0 + r1_PP_1_0 + epis)))
-    print("PP: R1 Y_hat=0 | Y=1 {:8f}".format(r1_PP_0_1 * 1.0 / (r1_PP_0_1 + r1_PP_1_1 + epis)))
-    print("PP: R1 Y_hat=1 | Y=1 {:8f}".format(r1_PP_1_1 * 1.0 / (r1_PP_0_1 + r1_PP_1_1 + epis)))
+    print("PP: R1 Y=0 | Y_hat=0 {:8f}".format(r1_PP_0_0 * 1.0 / (r1_PP_0_0 + r1_PP_1_0 + epis)))
+    print("PP: R1 Y=1 | Y_hat=0 {:8f}".format(r1_PP_1_0 * 1.0 / (r1_PP_0_0 + r1_PP_1_0 + epis)))
+    print("PP: R1 Y=0 | Y_hat=1 {:8f}".format(r1_PP_0_1 * 1.0 / (r1_PP_0_1 + r1_PP_1_1 + epis)))
+    print("PP: R1 Y=1 | Y_hat=1 {:8f}".format(r1_PP_1_1 * 1.0 / (r1_PP_0_1 + r1_PP_1_1 + epis)))
 
 
     print("accuracy: {:8f}".format(correct * 1.0 / test_features.shape[0]))
