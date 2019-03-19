@@ -50,6 +50,22 @@ class Sigmoid(Module):
         return gradient * (self.output * (1 - self.output))
 
 
+class Optimizer():
+    def __init__(self):
+        pass
+
+class Adam(Optimizer):
+    def __init__(self, param):
+        super(Adam, self).__init__()
+        self.beta1 = 0.9
+        self.beta2 = 0.999
+        self.m = np.zeros_like(param)
+        self.v = np.zeros_like(param)
+        self.eps = 1e-9
+    
+    def update(self, grad):
+        self.m, self.v = self.beta1 * self.m - (1 - self.beta1) * grad, self.beta2 * self.v - (1 - self.beta2) * grad2 ** 2
+        return m / (np.sqrt(v) + self.eps)
 
 # linear (i.e. linear transformation) layer
 class Linear(Module):
@@ -59,6 +75,8 @@ class Linear(Module):
         self.W = np.random.rand(input_size, output_size) * 0.01
         self.bias = np.zeros((output_size))
         self.input = None
+        self.gradW = None
+        self.gradb = None
 
     def forward(self, input):  # input has shape (batch_size, input_size)
         # todo compute forward pass through linear input
@@ -68,10 +86,14 @@ class Linear(Module):
     def backwards(self, gradient):
         # todo compute and store gradients using backpropogation
         #update
-        self.W = self.W - np.dot(np.transpose(self.input, (1, 0)), gradient) * learning_rate
-        self.bias = self.bias - gradient * learning_rate
+        self.gradW = np.dot(np.transpose(self.input, (1, 0)), gradient)
+        self.gradb = gradient
+
+        # SGD
+        # self.W = self.W - gradW * learning_rate
+        # self.bias = self.bias - gradb * learning_rate
         #
-        return np.dot(gradient, np.transpose(self.W, (1, 0)))
+        return np.dot(gradient, np.transpose(self.W - gradW * learning_rate, (1, 0)))
 
 
 # generic loss layer for loss functions
@@ -113,6 +135,10 @@ class Network(Module):
         self.sig1 = Sigmoid()
         self.fc2 = Linear(2, 2)
 
+        self.val_tobe_optimd = [fc1.W, fc1.b, fc2.W, fc2.b]
+        self.val_grads = [fc1.gradW, fc1.gradb, fc2.gradW, fc2.gradb]
+        self.optims = [Adam(x) for x in self.val_tobe_optimd]
+
 
     def forward(self, input):
         # todo compute forward pass through all initialized layers
@@ -125,6 +151,10 @@ class Network(Module):
         x = self.sig1.backwards(x)
         x = self.fc1.backwards(x)
 
+
+    def update(self):
+        for val, grad, optim in zip(self.val_tobe_optimd, self.val_grads, self.optims):
+            val -= Module.learning_rate * optim.update(grad)
 
     def predict(self, data):
         # todo compute forward pass and output predictions
