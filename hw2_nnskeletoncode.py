@@ -7,6 +7,7 @@
 # contains a forward method for computing the value for a given
 # input and a backwards method for computing gradients using
 # backpropogation.
+import numpy as np
 
 class Module():
     def __init__(self):
@@ -54,15 +55,24 @@ class Sigmoid(Module):
 class Linear(Module):
     def __init__(self, input_size, output_size, is_input=False):
         super(Linear, self).__init__()
-        # todo. initialize weights and biases. 
+        # todo. initialize weights and biases.
+        self.W = np.random.rand(input_size, output_size) * 0.01
+        self.bias = np.zeros((output_size))
 
     def forward(self, input):  # input has shape (batch_size, input_size)
         # todo compute forward pass through linear input
-        pass
+        self.prev = input
+        self.output = np.dot(input, self.W) + np.expand_dims(self.bias, axis=0)
+        return self.output
 
     def backwards(self, gradient):
         # todo compute and store gradients using backpropogation
-        pass
+        #update
+        self.W = self.W - np.dot(np.transpose(self.input, (1, 0)), gradient) * learning_rate
+        self.bias = self.bias - gradient  * learning_rate
+
+        #
+        return np.dot(gradient, np.transpose(self.W, (1, 0)))
 
 
 # generic loss layer for loss functions
