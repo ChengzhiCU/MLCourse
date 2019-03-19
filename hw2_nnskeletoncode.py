@@ -58,18 +58,18 @@ class Linear(Module):
         # todo. initialize weights and biases.
         self.W = np.random.rand(input_size, output_size) * 0.01
         self.bias = np.zeros((output_size))
+        self.input = None
 
     def forward(self, input):  # input has shape (batch_size, input_size)
         # todo compute forward pass through linear input
-        self.prev = input
-        self.output = np.dot(input, self.W) + np.expand_dims(self.bias, axis=0)
-        return self.output
+        self.input = input
+        return np.dot(input, self.W) + np.expand_dims(self.bias, axis=0)
 
     def backwards(self, gradient):
         # todo compute and store gradients using backpropogation
         #update
         self.W = self.W - np.dot(np.transpose(self.input, (1, 0)), gradient) * learning_rate
-        self.bias = self.bias - gradient  * learning_rate
+        self.bias = self.bias - gradient * learning_rate
         #
         return np.dot(gradient, np.transpose(self.W, (1, 0)))
 
@@ -122,8 +122,8 @@ class Network(Module):
     def backwards(self, grad):
         # todo iterate through layers and compute and store gradients
         x = self.fc2.backwards(grad)
-        x = self.sig1.backwards(grad)
-        x = self.fc1.backwards(grad)
+        x = self.sig1.backwards(x)
+        x = self.fc1.backwards(x)
 
 
     def predict(self, data):
