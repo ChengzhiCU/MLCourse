@@ -70,7 +70,6 @@ class Linear(Module):
         #update
         self.W = self.W - np.dot(np.transpose(self.input, (1, 0)), gradient) * learning_rate
         self.bias = self.bias - gradient  * learning_rate
-
         #
         return np.dot(gradient, np.transpose(self.W, (1, 0)))
 
@@ -110,20 +109,34 @@ class Network(Module):
     def __init__(self):
         super(Network, self).__init__()
         # todo initializes layers, i.e. sigmoid, linear
+        self.fc1 = Linear(2, 2)
+        self.sig1 = Sigmoid()
+        self.fc2 = Linear(2, 2)
+
 
     def forward(self, input):
         # todo compute forward pass through all initialized layers
-        pass
-
+        return self.fc2(self.sig1(self.fc1(input)))
+        
+        
     def backwards(self, grad):
         # todo iterate through layers and compute and store gradients
-        pass
+        x = self.fc2.backwards(grad)
+        x = self.sig1.backwards(grad)
+        x = self.fc1.backwards(grad)
+
 
     def predict(self, data):
         # todo compute forward pass and output predictions
+        _ = self.fc2(self.sig1(self.fc1(data)))
+        return self.fc2.output
+
 
     def accuracy(self, test_data, test_labels):
         # todo evaluate accuracy of model on a test dataset
+        pred = self.predict(test_data)
+        assert test_labels.shape[1] == 1 and pred.shape[1] == 1 and test_labels.shape[0] == pred.shape[0]
+        return (pred == test_labels).sum() / test_labels.shape[0]
 
 
 # function for training the network for a given number of iterations
