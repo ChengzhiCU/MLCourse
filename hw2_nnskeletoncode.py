@@ -17,11 +17,14 @@ class Module():
 
     def __call__(self, input):
         if isinstance(input, Module):
-            # todo. chain two networks together with module1(module2(x))
+            # chain two networks together with module1(module2(x))
             # update prev and output
+            self.prev = input
+            self.output = self.forward(self.prev.output)
         else:
-            # todo. evaluate on an input.
+            # evaluate on an input.
             # update output
+            self.output = self.forward(input)
 
         return self
 
@@ -38,12 +41,13 @@ class Sigmoid(Module):
         super(Sigmoid, self).__init__()
 
     def forward(self, input):
-        # todo. compute sigmoid, update fields
-        pass
+        # compute sigmoid, update fields
+        return 1.0 / (1.0 + np.exp(-input))
 
     def backwards(self, gradient):
-        # todo. compute gradients with backpropogation and data from forward pass
-        pass
+        # compute gradients with backpropogation and data from forward pass
+        return gradient * (self.output * (1 - self.output))
+
 
 
 # linear (i.e. linear transformation) layer
@@ -83,11 +87,12 @@ class MeanErrorLoss(Loss):
         super(MeanErrorLoss, self).__init__()
 
     def forward(self, input, labels):  # input has shape (batch_size, input_size)
-        # todo compute loss, update fields
-        pass
+        # compute loss, update fields
+        return np.sum(((input - labels) ** 2.0), axis=1)
 
     def backwards(self):
-        # todo compute gradient using backpropogation
+        # compute gradient using backpropogation
+        return (input - labels) * 2.0
 
 
 ## overall neural network class
