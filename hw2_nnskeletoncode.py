@@ -65,8 +65,8 @@ class Adam(Optimizer):
         self.eps = 1e-9
     
     def update(self, grad):
-        print(grad)
-        self.m, self.v = self.beta1 * self.m - (1 - self.beta1) * grad, self.beta2 * self.v - (1 - self.beta2) * grad ** 2
+        # print(grad)
+        self.m, self.v = self.beta1 * self.m + (1 - self.beta1) * grad, self.beta2 * self.v + (1 - self.beta2) * grad ** 2
         return self.m / (np.sqrt(self.v) + self.eps)
 
 # linear (i.e. linear transformation) layer
@@ -135,38 +135,43 @@ class Network(Module):
     def __init__(self):
         super(Network, self).__init__()
         # todo initializes layers, i.e. sigmoid, linear
-        self.fc1 = Linear(2, 7)
+        self.fc1 = Linear(2, 128)
         self.sig1 = Sigmoid()
-        self.fc2 = Linear(7, 1)
+        self.fc2 = Linear(128, 512)
+        self.sig2 = Sigmoid()
+        self.fc3 = Linear(512, 1)
 
-        self.val_tobe_optimd = [self.fc1.W, self.fc1.bias, self.fc2.W, self.fc2.bias]
-        self.val_grads = [self.fc1.gradW, self.fc1.gradb, self.fc2.gradW, self.fc2.gradb]
+        self.val_tobe_optimd = [self.fc1.W, self.fc1.bias, self.fc2.W, self.fc2.bias, self.fc3.W, self.fc3.bias]
+        self.val_grads = [self.fc1.gradW, self.fc1.gradb, self.fc2.gradW, self.fc2.gradb, self.fc3.gradW, self.fc3.gradb]
         self.optims = [Adam(x) for x in self.val_tobe_optimd]
 
 
     def forward(self, input):
         # todo compute forward pass through all initialized layers
-        return self.fc2(self.sig1(self.fc1(input)))
+        return self.fc3(self.sig2(self.fc2(self.sig1(self.fc1(input)))))
         
         
     def backwards(self, grad):
         # todo iterate through layers and compute and store gradients
-        x = self.fc2.backwards(grad)
+        x = grad
+        x = self.fc3.backwards(x)
+        x = self.sig2.backwards(x)
+        x = self.fc2.backwards(x)
         x = self.sig1.backwards(x)
         x = self.fc1.backwards(x)
 
-        self.val_grads = [self.fc1.gradW, self.fc1.gradb, self.fc2.gradW, self.fc2.gradb] 
+        self.val_grads = [self.fc1.gradW, self.fc1.gradb, self.fc2.gradW, self.fc2.gradb, self.fc3.gradW, self.fc3.gradb] 
 
 
     def update(self):
         for val, grad, optim in zip(self.val_tobe_optimd, self.val_grads, self.optims):
-            print('grad here', val.shape, grad.shape)
+            # print('grad here', val.shape, grad.shape)
             val -= Module.learning_rate * optim.update(grad)
 
     def predict(self, data):
         # todo compute forward pass and output predictions
-        _ = self.fc2(self.sig1(self.fc1(data)))
-        return self.fc2.output
+        _ = self.fc3(self.sig2(self.fc2(self.sig1(self.fc1(data)))))
+        return self.fc3.output
 
 
     def accuracy(self, test_data, test_labels):
@@ -186,6 +191,8 @@ class Dataloader():
         elif dataset_ind == 2:
             self.x = combo['X2']
             self.y = combo['Y2']
+        else:
+            raise ValueError("No such dataset {}".format(dataset_ind))
         self.len = self.x.shape[0]
 
         self.cur_order = np.random.permutation(self.len)
@@ -211,13 +218,21 @@ def train(model, dataloader, loss, num_iterations, minibatch_size, learning_rate
     
     for iter in range(num_iterations):
         x, y = dataloader.next_batch(minibatch_size)
-
+        # x = np.zeros_like(x)    # Debug
         pred = model.forward(x)
+
         # print('prediction', pred.output)
         loss_value = loss.forward(pred, y)
+        # print("After forward")
+        
         loss_grad = loss.backwards()
+        # print("After calculate loss")
+
         model.backwards(loss_grad)
+        # print("After backprop")
+
         model.update()
+        # print("After update weights")
 
         print(loss_value)
         # print("loss: {:.5}".format(loss_value))
@@ -231,7 +246,7 @@ if __name__ == '__main__':
     # loss_v = loss()
     # loss=None
 
-    train(model, dataloader, loss, 10, 500, 1e-5)
+    train(model, dataloader, loss, 1000, 500, 1e-5)
 
 
 
