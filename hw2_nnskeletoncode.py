@@ -191,6 +191,9 @@ class Dataloader():
         elif dataset_ind == 2:
             self.x = combo['X2']
             self.y = combo['Y2']
+        elif dataset_ind == 3:     # Debug quadratic func
+            self.x = np.array([[i, i] for i in range(1000)])
+            self.y = np.array([[i ** 2] for i in range(1000)])
         else:
             raise ValueError("No such dataset {}".format(dataset_ind))
         self.len = self.x.shape[0]
@@ -240,7 +243,7 @@ def train(model, dataloader, loss, num_iterations, minibatch_size, learning_rate
 
 if __name__ == '__main__':
 
-    dataloader = Dataloader(1)
+    dataloader = Dataloader(3)
     model = Network()
     loss = MeanErrorLoss()
     # loss_v = loss()
