@@ -8,13 +8,14 @@
 # input and a backwards method for computing gradients using
 # backpropogation.
 import numpy as np
+import scipy.io as sio
 
 class Module():
     def __init__(self):
         self.prev = None # previous network (linked list of layers)
         self.output = None # output of forward call for backprop.
 
-    learning_rate = 1E-2 # class-level learning rate
+    learning_rate = 1E-7 # class-level learning rate
 
     def __call__(self, input):
         if isinstance(input, Module):
@@ -64,8 +65,9 @@ class Adam(Optimizer):
         self.eps = 1e-9
     
     def update(self, grad):
-        self.m, self.v = self.beta1 * self.m - (1 - self.beta1) * grad, self.beta2 * self.v - (1 - self.beta2) * grad2 ** 2
-        return m / (np.sqrt(v) + self.eps)
+        print(grad)
+        self.m, self.v = self.beta1 * self.m - (1 - self.beta1) * grad, self.beta2 * self.v - (1 - self.beta2) * grad ** 2
+        return self.m / (np.sqrt(self.v) + self.eps)
 
 # linear (i.e. linear transformation) layer
 class Linear(Module):
@@ -87,13 +89,13 @@ class Linear(Module):
         # todo compute and store gradients using backpropogation
         #update
         self.gradW = np.dot(np.transpose(self.input, (1, 0)), gradient)
-        self.gradb = gradient
+        self.gradb = np.mean(gradient, axis=0)
 
         # SGD
         # self.W = self.W - gradW * learning_rate
         # self.bias = self.bias - gradb * learning_rate
         #
-        return np.dot(gradient, np.transpose(self.W - gradW * learning_rate, (1, 0)))
+        return np.dot(gradient, np.transpose(self.W, (1, 0)))
 
 
 # generic loss layer for loss functions
@@ -119,11 +121,13 @@ class MeanErrorLoss(Loss):
 
     def forward(self, input, labels):  # input has shape (batch_size, input_size)
         # compute loss, update fields
-        return np.sum(((input - labels) ** 2.0), axis=1)
+        self.input = input.output
+        self.labels = labels
+        return np.mean(np.sum(((input.output - labels) ** 2.0), axis=1))
 
     def backwards(self):
         # compute gradient using backpropogation
-        return (input - labels) * 2.0
+        return (self.input - self.labels) * 2.0
 
 
 ## overall neural network class
@@ -131,12 +135,12 @@ class Network(Module):
     def __init__(self):
         super(Network, self).__init__()
         # todo initializes layers, i.e. sigmoid, linear
-        self.fc1 = Linear(2, 2)
+        self.fc1 = Linear(2, 7)
         self.sig1 = Sigmoid()
-        self.fc2 = Linear(2, 2)
+        self.fc2 = Linear(7, 1)
 
-        self.val_tobe_optimd = [fc1.W, fc1.b, fc2.W, fc2.b]
-        self.val_grads = [fc1.gradW, fc1.gradb, fc2.gradW, fc2.gradb]
+        self.val_tobe_optimd = [self.fc1.W, self.fc1.bias, self.fc2.W, self.fc2.bias]
+        self.val_grads = [self.fc1.gradW, self.fc1.gradb, self.fc2.gradW, self.fc2.gradb]
         self.optims = [Adam(x) for x in self.val_tobe_optimd]
 
 
@@ -151,9 +155,12 @@ class Network(Module):
         x = self.sig1.backwards(x)
         x = self.fc1.backwards(x)
 
+        self.val_grads = [self.fc1.gradW, self.fc1.gradb, self.fc2.gradW, self.fc2.gradb] 
+
 
     def update(self):
         for val, grad, optim in zip(self.val_tobe_optimd, self.val_grads, self.optims):
+            print('grad here', val.shape, grad.shape)
             val -= Module.learning_rate * optim.update(grad)
 
     def predict(self, data):
@@ -169,7 +176,64 @@ class Network(Module):
         return (pred == test_labels).sum() / test_labels.shape[0]
 
 
+class Dataloader():
+    def __init__(self, dataset_ind):
+
+        combo = sio.loadmat("hw2_data.mat")
+        if dataset_ind == 1:
+            self.x = combo['X1']
+            self.y = combo['Y1']
+        elif dataset_ind == 2:
+            self.x = combo['X2']
+            self.y = combo['Y2']
+        self.len = self.x.shape[0]
+
+        self.cur_order = np.random.permutation(self.len)
+        self.data_start = 0
+
+    def next_batch(self, batch_size):
+        x, y = None, None
+        if self.data_start + batch_size >= self.len:
+            batch_size = self.len - self.data_start - 1
+            x = self.x[self.cur_order[self.data_start:self.data_start+batch_size]]
+            y = self.y[self.cur_order[self.data_start:self.data_start+batch_size]]
+            self.data_start = 0
+        else:
+            x = self.x[self.cur_order[self.data_start:self.data_start + batch_size]]
+            y = self.y[self.cur_order[self.data_start:self.data_start + batch_size]]
+            self.data_start += batch_size
+        return x, y
+
 # function for training the network for a given number of iterations
-def train(model, data, labels, num_iterations, minibatch_size, learning_rate):
+def train(model, dataloader, loss, num_iterations, minibatch_size, learning_rate):
     # todo repeatedly do forward and backwards calls, update weights, do 
     # stochastic gradient descent on mini-batches.
+    
+    for iter in range(num_iterations):
+        x, y = dataloader.next_batch(minibatch_size)
+
+        pred = model.forward(x)
+        # print('prediction', pred.output)
+        loss_value = loss.forward(pred, y)
+        loss_grad = loss.backwards()
+        model.backwards(loss_grad)
+        model.update()
+
+        print(loss_value)
+        # print("loss: {:.5}".format(loss_value))
+
+
+if __name__ == '__main__':
+
+    dataloader = Dataloader(1)
+    model = Network()
+    loss = MeanErrorLoss()
+    # loss_v = loss()
+    # loss=None
+
+    train(model, dataloader, loss, 10, 500, 1e-5)
+
+
+
+
+
