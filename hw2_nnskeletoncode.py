@@ -15,7 +15,7 @@ class Module():
         self.prev = None # previous network (linked list of layers)
         self.output = None # output of forward call for backprop.
 
-    learning_rate = 1E-7 # class-level learning rate
+    learning_rate = 1E-3 # class-level learning rate
 
     def __call__(self, input):
         if isinstance(input, Module):
@@ -74,7 +74,7 @@ class Linear(Module):
     def __init__(self, input_size, output_size, is_input=False):
         super(Linear, self).__init__()
         # todo. initialize weights and biases.
-        self.W = np.random.rand(input_size, output_size) * 0.01
+        self.W = np.random.rand(input_size, output_size) * 0.1
         self.bias = np.zeros((output_size))
         self.input = None
         self.gradW = None
@@ -139,7 +139,8 @@ class Network(Module):
         self.sig1 = Sigmoid()
         self.fc2 = Linear(128, 512)
         self.sig2 = Sigmoid()
-        self.fc3 = Linear(512, 1)
+        self.fc3 = Linear(512, 3)
+        self.sig3 = Sigmoid()
 
         self.val_tobe_optimd = [self.fc1.W, self.fc1.bias, self.fc2.W, self.fc2.bias, self.fc3.W, self.fc3.bias]
         self.val_grads = [self.fc1.gradW, self.fc1.gradb, self.fc2.gradW, self.fc2.gradb, self.fc3.gradW, self.fc3.gradb]
@@ -148,12 +149,13 @@ class Network(Module):
 
     def forward(self, input):
         # todo compute forward pass through all initialized layers
-        return self.fc3(self.sig2(self.fc2(self.sig1(self.fc1(input)))))
+        return self.sig3(self.fc3(self.sig2(self.fc2(self.sig1(self.fc1(input))))))
         
         
     def backwards(self, grad):
         # todo iterate through layers and compute and store gradients
         x = grad
+        x = self.sig3.backwards(x)
         x = self.fc3.backwards(x)
         x = self.sig2.backwards(x)
         x = self.fc2.backwards(x)
@@ -187,13 +189,14 @@ class Dataloader():
         combo = sio.loadmat("hw2_data.mat")
         if dataset_ind == 1:
             self.x = combo['X1']
-            self.y = combo['Y1']
+            self.y = combo['Y1'] / 255.
         elif dataset_ind == 2:
             self.x = combo['X2']
-            self.y = combo['Y2']
+            self.y = combo['Y2'] / 255.
         elif dataset_ind == 3:     # Debug quadratic func
-            self.x = np.array([[i, i] for i in range(1000)])
-            self.y = np.array([[i ** 2] for i in range(1000)])
+            n = 1000
+            self.x = np.array([[i / n, i / n] for i in range(n)])
+            self.y = np.array([[i * i / n / n] for i in range(n)])
         else:
             raise ValueError("No such dataset {}".format(dataset_ind))
         self.len = self.x.shape[0]
@@ -240,16 +243,15 @@ def train(model, dataloader, loss, num_iterations, minibatch_size, learning_rate
         print(loss_value)
         # print("loss: {:.5}".format(loss_value))
 
-
 if __name__ == '__main__':
 
-    dataloader = Dataloader(3)
+    dataloader = Dataloader(2)
     model = Network()
     loss = MeanErrorLoss()
     # loss_v = loss()
     # loss=None
 
-    train(model, dataloader, loss, 1000, 500, 1e-5)
+    train(model, dataloader, loss, 100000, 128, 1e-5)
 
 
 
