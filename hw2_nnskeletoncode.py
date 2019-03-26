@@ -15,7 +15,7 @@ class Module():
         self.prev = None # previous network (linked list of layers)
         self.output = None # output of forward call for backprop.
 
-    learning_rate = 1E-3 # class-level learning rate
+    learning_rate = 1e-3 # class-level learning rate
 
     def __call__(self, input):
         if isinstance(input, Module):
@@ -62,14 +62,22 @@ class Adam(Optimizer):
         self.beta2 = 0.999
         self.m = np.zeros_like(param)
         self.v = np.zeros_like(param)
-        self.eps = 1e-9
+        self.eps = 1e-12
     
     def update(self, grad):
         # print(grad)
-        self.m, self.v = self.beta1 * self.m + (1 - self.beta1) * grad, self.beta2 * self.v + (1 - self.beta2) * grad ** 2
+        self.m, self.v = self.beta1 * self.m + (1 - self.beta1) * grad, self.beta2 * self.v + (1 - self.beta2) * (grad ** 2)
         return self.m / (np.sqrt(self.v) + self.eps)
 
+class SGD(Optimizer):
+    def __init__(self, param):
+        super(SGD, self).__init__()
+    
+    def update(self, grad):
+        return grad
+
 # linear (i.e. linear transformation) layer
+from IPython import embed
 class Linear(Module):
     def __init__(self, input_size, output_size, is_input=False):
         super(Linear, self).__init__()
@@ -88,8 +96,9 @@ class Linear(Module):
     def backwards(self, gradient):
         # todo compute and store gradients using backpropogation
         #update
-        self.gradW = np.dot(np.transpose(self.input, (1, 0)), gradient)
+        self.gradW = np.dot(np.transpose(self.input, (1, 0)), gradient) / self.input.shape[0]
         self.gradb = np.mean(gradient, axis=0)
+        # embed()
 
         # SGD
         # self.W = self.W - gradW * learning_rate
@@ -112,7 +121,6 @@ class Loss:
 
     def backwards(self):
         raise NotImplementedError
-
 
 # MSE loss function
 class MeanErrorLoss(Loss):
@@ -144,6 +152,7 @@ class Network(Module):
 
         self.val_tobe_optimd = [self.fc1.W, self.fc1.bias, self.fc2.W, self.fc2.bias, self.fc3.W, self.fc3.bias]
         self.val_grads = [self.fc1.gradW, self.fc1.gradb, self.fc2.gradW, self.fc2.gradb, self.fc3.gradW, self.fc3.gradb]
+
         self.optims = [Adam(x) for x in self.val_tobe_optimd]
 
 
@@ -172,8 +181,8 @@ class Network(Module):
 
     def predict(self, data):
         # todo compute forward pass and output predictions
-        _ = self.fc3(self.sig2(self.fc2(self.sig1(self.fc1(data)))))
-        return self.fc3.output
+        _ = self.sig3(self.fc3(self.sig2(self.fc2(self.sig1(self.fc1(data))))))
+        return self.sig3.output
 
 
     def accuracy(self, test_data, test_labels):
@@ -217,12 +226,16 @@ class Dataloader():
             self.data_start += batch_size
         return x, y
 
+    def refresh_order(self):
+        self.cur_order = np.random.permutation(self.len)
+
 # function for training the network for a given number of iterations
 def train(model, dataloader, loss, num_iterations, minibatch_size, learning_rate):
     # todo repeatedly do forward and backwards calls, update weights, do 
     # stochastic gradient descent on mini-batches.
     
     for iter in range(num_iterations):
+        dataloader.refresh_order()
         x, y = dataloader.next_batch(minibatch_size)
         # x = np.zeros_like(x)    # Debug
         pred = model.forward(x)
@@ -243,15 +256,34 @@ def train(model, dataloader, loss, num_iterations, minibatch_size, learning_rate
         print(loss_value)
         # print("loss: {:.5}".format(loss_value))
 
+from IPython import embed
 if __name__ == '__main__':
 
-    dataloader = Dataloader(2)
+    idx = 2
+    dataloader = Dataloader(idx)
     model = Network()
     loss = MeanErrorLoss()
     # loss_v = loss()
     # loss=None
 
-    train(model, dataloader, loss, 100000, 128, 1e-5)
+    train(model, dataloader, loss, 250000, 256, 1e-5)
+
+    x, y = dataloader.x, dataloader.y
+    pred = model.predict(x)
+    if idx == 1:
+        img1, img2 = np.reshape(pred, (100, 76)), np.reshape(y, (100, 76))
+    elif idx == 2:
+        img1, img2 = np.reshape(pred, (133, 140, 3)), np.reshape(y, (133, 140, 3))
+        img1, img2 = img1[:, :, ::-1], img2[:, :, ::-1]
+    else:
+        img1, img2 = None, None
+    
+
+    img1 *= 255
+    img2 *= 255
+    import cv2
+    cv2.imwrite("pred.png", img1)
+    cv2.imwrite("label.png", img2)
 
 
 
