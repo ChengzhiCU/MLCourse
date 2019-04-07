@@ -11,7 +11,7 @@ def list_to_dict(list_name):
     return out_dict
 
 
-def process(filename):
+def process(filename, normalize=False):
     work_class = ["Private", "Self-emp-not-inc", "Self-emp-inc", "Federal-gov", "Local-gov", "State-gov", "Without-pay",
                   "Never-worked", "?"]
 
@@ -67,7 +67,7 @@ def process(filename):
 
         for i, row in enumerate(csv_reader):
 
-            print(row)
+            # print(row)
             # feature_vec = np.
             if len(row) > 1 and i>0:
                 feature_mat[i, 0] = int(row[0]) * 1.0
@@ -89,10 +89,16 @@ def process(filename):
 
                 income_vec[i] = int(row[14]) * 1.0
 
+    print(np.mean(feature_mat, axis=0).shape)
+    if normalize:
+        feature_mat = (feature_mat - np.mean(feature_mat, axis=0)) / np.std(feature_mat, axis=0)
     return feature_mat, gender_vec, income_vec
 
 
 
 
 if __name__ == '__main__':
-    process("train.csv")
+    f, g, i = process("train.csv", True)
+    print(np.mean(i))
+    print(np.mean(g))
+    print(np.mean(f[:, 1]), np.std(f[:, 1]))
