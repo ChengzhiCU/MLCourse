@@ -1,0 +1,1 @@
+["Age","workclass","fnlwgt","education","education-num","marital-status","occupation","relationship","race","gender","capital gain","capital loss","hours per week","native-country","income"]
