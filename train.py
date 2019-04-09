@@ -4,8 +4,8 @@ import data_preprocess
 import numpy as np
 import csv
 
-num_epochs = 20
-concat = False
+num_epochs = 200
+concat = True
 
 device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
 
@@ -35,10 +35,10 @@ mean, std, feature_mat_train, feature_mat_val, gender_vec_train, gender_vec_val,
 feature_mat_test,  gender_vec_test = data_preprocess.test_process("test_no_income.csv", mean, std, True)
 
 if concat:
-    model = NeuralNet(14, 256, 1).to(device)
+    model = NeuralNet(14, 128, 1).to(device)
 else:
     print("using no cat")
-    model = NeuralNet(13, 512, 1).to(device)
+    model = NeuralNet(13, 128, 1).to(device)
 
 criterion = nn.MSELoss()
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
@@ -49,12 +49,16 @@ batch_size = 500
 if concat:
     feature_mat_train_all = np.concatenate((feature_mat_train, np.expand_dims(gender_vec_train, 1)), axis=1)
     feature_mat_val_all = np.concatenate((feature_mat_val, np.expand_dims(gender_vec_val, 1)), axis=1)
+    feature_mat_test_all = np.concatenate((feature_mat_test, np.expand_dims(gender_vec_test, 1)), axis=1)
 else:
     feature_mat_train_all = feature_mat_train
     feature_mat_val_all = feature_mat_val
+    feature_mat_test_all = feature_mat_test
 
 for epoch in range(num_epochs):
     cur_order = np.random.permutation(feature_mat_train.shape[0])
+    loss_all = 0
+    cnt = 0
     for iter in range(feature_mat_train.shape[0]//batch_size):
         ibatch_start = iter * batch_size
         ibatch_end = (iter + 1) * batch_size
@@ -75,7 +79,10 @@ for epoch in range(num_epochs):
         optimizer.step()
 
         # print("loss = ", loss.item())
+        loss_all += loss.item()
+        cnt += 1
     # test
+    print("loss = ", loss_all / cnt)
 
     val_fea = torch.from_numpy(feature_mat_val_all).float().to(device)
     pred_income = model(val_fea).cpu().data.numpy()[:, 0]
@@ -104,7 +111,7 @@ for epoch in range(num_epochs):
                                                                                    cor_num / total))
 
 
-test_fea = torch.from_numpy(feature_mat_test).float().to(device)
+test_fea = torch.from_numpy(feature_mat_test_all).float().to(device)
 pred_income = model(test_fea).cpu().data.numpy()[:, 0]
 pred_income_binary = np.asarray((pred_income > 0.5), dtype=np.int)
 
