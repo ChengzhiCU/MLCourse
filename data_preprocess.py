@@ -53,7 +53,7 @@ def train_process(filename, split_ratio=0.8, normalize=False):
         csv_reader = csv.reader(csv_file, delimiter=',')
         for i, row in enumerate(csv_reader):
             cnt += 1
-
+    cnt -= 1
     print("data num", cnt)
     csv_file.close()
 
@@ -64,11 +64,12 @@ def train_process(filename, split_ratio=0.8, normalize=False):
     with open(filename) as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=',')
 
-        for i, row in enumerate(csv_reader):
+        for ii, row in enumerate(csv_reader):
 
             # print(row)
             # feature_vec = np.
-            if len(row) > 1 and i>0:
+            if len(row) > 1 and ii>0:
+                i = ii-1
                 feature_mat[i, 0] = int(row[0]) * 1.0
                 feature_mat[i, 1] = work_class[row[1]] * 1.0
                 feature_mat[i, 2] = int(row[2]) * 1.0
@@ -162,7 +163,8 @@ def test_process(filename, mean, std, normalize=False):
         for i, row in enumerate(csv_reader):
             cnt += 1
 
-    print("data num", cnt)
+    cnt -= 1
+    print("test data num", cnt)
     csv_file.close()
 
     feature_mat = np.zeros((cnt, 13))
@@ -171,11 +173,12 @@ def test_process(filename, mean, std, normalize=False):
     with open(filename) as csv_file:
         csv_reader = csv.reader(csv_file, delimiter=',')
 
-        for i, row in enumerate(csv_reader):
+        for ii, row in enumerate(csv_reader):
 
             # print(row)
             # feature_vec = np.
-            if len(row) > 1 and i>0:
+            if len(row) > 1 and ii>0:
+                i = ii-1
                 feature_mat[i, 0] = int(row[0]) * 1.0
                 feature_mat[i, 1] = work_class[row[1]] * 1.0
                 feature_mat[i, 2] = int(row[2]) * 1.0

@@ -2,6 +2,7 @@ import torch
 import torch.nn as nn
 import data_preprocess
 import numpy as np
+import csv
 
 num_epochs = 20
 concat = False
@@ -102,6 +103,19 @@ for epoch in range(num_epochs):
                                                                                    gen0_correct_num / num0,
                                                                                    cor_num / total))
 
+
+test_fea = torch.from_numpy(feature_mat_test).float().to(device)
+pred_income = model(test_fea).cpu().data.numpy()[:, 0]
+pred_income_binary = np.asarray((pred_income > 0.5), dtype=np.int)
+
+with open('test_pred.csv', 'w') as csvfile:
+    # spamwriter = csv.writer(csvfile, delimiter=' ',
+    #                         quotechar='|', quoting=csv.QUOTE_MINIMAL)
+    # spamwriter.writerow('Id', 'income Spam')
+    csvfile.write('Id' + "," + 'income' + "\n")
+    print(pred_income.shape[0])
+    for i in range(pred_income.shape[0]):
+        csvfile.write(str(int(i))+","+ str(pred_income_binary[i]) + "\n")
 
 
 
