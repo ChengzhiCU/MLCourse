@@ -5,7 +5,7 @@ import numpy as np
 import csv
 import torch.nn.functional as F
 
-num_epochs = 200
+num_epochs = 100
 concat = False
 lambda_adv = 1e-4
 
@@ -60,12 +60,16 @@ if concat:
 else:
     print("using no cat")
     model = NeuralNet(13, 128, 2).to(device)
-    discri = Discri(128, 16, 2).to(device)
+    discri = Discri(128, 64, 2).to(device)
 
 
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
 optimizerD = torch.optim.Adam(discri.parameters(), lr=1e-4)
 
+# optimizer = torch.optim.SGD(model.parameters(), lr=1e-3)
+# optimizerD = torch.optim.SGD(discri.parameters(), lr=1e-3)
+
+D_iter = 20
 batch_size = 500
 
 
@@ -104,13 +108,13 @@ for epoch in range(num_epochs):
         # loss_0 = criterion(outputs * (1 - gen_mask), targets.resize(targets.size(0), 1) * (1 - gen_mask))
         #
         # loss = loss_0 + loss_1
+        for iii in range(D_iter):
+            optimizerD.zero_grad()
 
-        optimizerD.zero_grad()
-
-        pred_gen = discri(fea.detach())
-        lossD = F.nll_loss(torch.log(outputs), gen_mask)
-        lossD.backward(retain_graph=True)
-        optimizerD.step()
+            pred_gen = discri(fea.detach())
+            lossD = F.nll_loss(torch.log(outputs), gen_mask)
+            lossD.backward(retain_graph=True)
+            optimizerD.step()
 
         pred_gen = discri(fea.detach())
         lossD = F.nll_loss(torch.log(outputs), gen_mask)
@@ -156,8 +160,8 @@ for epoch in range(num_epochs):
 
 
 test_fea = torch.from_numpy(feature_mat_test_all).float().to(device)
-pred_income = model(test_fea)[0].cpu().data.numpy()[:, 0]
-pred_income_binary = np.asarray((pred_income > 0.5), dtype=np.int)
+pred_income = model(test_fea)[0].cpu().data.numpy()
+pred_income_binary = np.asarray((pred_income[:, 0] < pred_income[:, 1]), dtype=np.int)
 
 with open('test_pred.csv', 'w') as csvfile:
     # spamwriter = csv.writer(csvfile, delimiter=' ',
