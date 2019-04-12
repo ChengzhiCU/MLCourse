@@ -17,15 +17,19 @@ class NeuralNet(nn.Module):
         super(NeuralNet, self).__init__()
         self.fc1 = nn.Linear(input_size, hidden_size)
         self.relu = nn.ReLU()
+        self.fc11 = nn.Linear(hidden_size, hidden_size)
+        self.relu1 = nn.ReLU()
         self.fc2 = nn.Linear(hidden_size, hidden_size)
-        self.relu = nn.ReLU()
+        self.relu2 = nn.ReLU()
         self.fc3 = nn.Linear(hidden_size, num_classes)
 
     def forward(self, x):
         out = self.fc1(x)
-        out1 = self.relu(out)
-        out = self.fc2(out1)
         out = self.relu(out)
+        out = self.fc11(out)
+        out1 = self.relu1(out)
+        out = self.fc2(out1)
+        out = self.relu2(out)
         out = self.fc3(out)
         out = F.softmax(out, dim=1)
         return out, out1
@@ -56,7 +60,7 @@ if concat:
 else:
     print("using no cat")
     model = NeuralNet(13, 128, 2).to(device)
-    discri = Discri(128, 64, 2).to(device)
+    discri = Discri(128, 16, 2).to(device)
 
 
 optimizer = torch.optim.Adam(model.parameters(), lr=1e-4)
@@ -108,6 +112,9 @@ for epoch in range(num_epochs):
         lossD.backward(retain_graph=True)
         optimizerD.step()
 
+        pred_gen = discri(fea.detach())
+        lossD = F.nll_loss(torch.log(outputs), gen_mask)
+
         optimizer.zero_grad()
         loss = F.nll_loss(torch.log(outputs), targets)
         loss  = loss - lambda_adv * lossD
@@ -123,17 +130,16 @@ for epoch in range(num_epochs):
     print("lossD = ", lossD_all / cnt)
 
     val_fea = torch.from_numpy(feature_mat_val_all).float().to(device)
-    pred_income = model(val_fea)[0].cpu().data.numpy()[:, 0]
+    pred_income = model(val_fea)[0].cpu().data.numpy()
 
-
-    gen1_pred = np.asarray((pred_income > 0.5), dtype=np.float32)
+    gen1_pred = np.asarray((pred_income[:, 0] < pred_income[:, 1]), dtype=np.float32)
     gen1_correct = (gen1_pred == income_vec_val) * gender_vec_val
     # print("gen1_pred", gen1_pred.shape, income_vec_val.shape, gender_vec_val.shape)
 
     # print("gen1_correct", gen1_correct, gen1_correct.shape)
     gen1_correct_num = np.sum(gen1_correct)
 
-    gen0_pred = np.asarray((pred_income > 0.5), dtype=np.float32)
+    gen0_pred = np.asarray((pred_income[:, 0] < pred_income[:, 1]), dtype=np.float32) #TODO:change
     gen0_correct = (gen0_pred == income_vec_val) * (1 - gender_vec_val)
     gen0_correct_num = np.sum(gen0_correct)
 
@@ -141,7 +147,7 @@ for epoch in range(num_epochs):
     num1 = np.sum(gender_vec_val)
     num0 = total - num1
 
-    pred_income_binary = np.asarray((pred_income > 0.5), dtype=np.float32)
+    pred_income_binary = np.asarray((pred_income[:, 0] < pred_income[:, 1]), dtype=np.float32)
     cor_num = np.sum((pred_income_binary == income_vec_val))
 
     print("accuracy of A= {} \n accuracy of B= {} \n overall accuracy = {}".format(gen1_correct_num / num1,
@@ -150,7 +156,7 @@ for epoch in range(num_epochs):
 
 
 test_fea = torch.from_numpy(feature_mat_test_all).float().to(device)
-pred_income = model(test_fea).cpu().data.numpy()[:, 0]
+pred_income = model(test_fea)[0].cpu().data.numpy()[:, 0]
 pred_income_binary = np.asarray((pred_income > 0.5), dtype=np.int)
 
 with open('test_pred.csv', 'w') as csvfile:
