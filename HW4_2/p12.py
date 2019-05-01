@@ -2,7 +2,7 @@
 # @Author: yuchen
 # @Date:   2019-05-01 10:41:36
 # @Last Modified by:   yuchen
-# @Last Modified time: 2019-05-01 13:28:29
+# @Last Modified time: 2019-05-01 16:56:35
 
 
 import numpy as np
@@ -31,7 +31,7 @@ def iterator(dataset, centers):
 	newcenters = np.array([np.mean(pos[i], axis=0) for i in range(len(pos))])
 	return newcenters, np.array(assignment)
 
-def plot(dataset, centers, assignment, name="plt_2.png"):
+def plot(dataset, centers, assignment, name="plt_2"):
 	plt.clf()
 	colors = ['b', 'g']
 	for i in range(2):
@@ -39,7 +39,8 @@ def plot(dataset, centers, assignment, name="plt_2.png"):
 		plt.scatter(dataset[idx, 0], dataset[idx, 1], marker='.', alpha=0.5, color=colors[i])
 	plt.scatter(centers[0:1, 0], centers[0:1, 1], marker='x', color=colors[0])
 	plt.scatter(centers[1:2, 0], centers[1:2, 1], marker='x', color=colors[1])
-	plt.savefig(name)
+	plt.title(name)
+	plt.savefig(name + ".png") 
 
 
 def rnngraph(dataset, r):
@@ -63,36 +64,40 @@ def findcc(graph):
 	i = 0
 	import queue
 	q = queue.Queue(n)
+	status = np.zeros((n, ))	# 0: not found, 1: in queue, 2: found
 	while i < n:
-		if i in found:
+		if status[i] == 2:
 			i += 1
 			continue
+		elif status[i] == 1:
+			raise ValueError("Impossible executing logic")
+		else:
+			pass
+
 		vec = np.zeros((n, ))
 		q.put(i)
-		inqueue.add(i)
+		status[i] = 1
+
 		while not q.empty():
 			x = q.get()
-			inqueue.remove(x)
 			# print("Queue size: {}".format(q.qsize()))
-			if x in found:
+			if status[x] == 2:
 				continue
-			print(x)
-			found.add(x)
+			status[x] = 2
 			vec[x] = 1
 			for j in range(n):
-				if graph[i, j] == 1 and j not in found and j not in inqueue:
-					# print("In for loop, j = {}".format(j))
+				if graph[x, j] == 1 and status[j] == 0:
 					q.put(j)
-					inqueue.add(j)
+					status[j] = 1
 		vecs.append(vec)
 	return vecs
 
 def main():
-	n = 200
+	n = 400
 	k = 2
 	sig = 0.1
 	r = 2.0
-	rnum = 30
+	rnum = 50
 	MAXITER = 500
 	dataset = dataset1(n)
 
@@ -103,10 +108,12 @@ def main():
 	vecs = findcc(W)
 
 	dataV = np.vstack(vecs).T
-	# centers = nr.normal(size=(k, dataV.shape[1]))
-	centers = dataV[:k]
-
-	# embed()
+	print("#CC = {}".format(dataV.shape[1]))
+	centers = []
+	for i in range(k):
+		tmp = np.zeros((k))
+		tmp[i] = 1
+		centers.append(tmp)
 
 	for it in range(MAXITER):
 		if it % 20 == 0:

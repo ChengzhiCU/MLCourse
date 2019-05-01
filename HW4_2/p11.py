@@ -2,7 +2,7 @@
 # @Author: yuchen
 # @Date:   2019-05-01 09:49:48
 # @Last Modified by:   yuchen
-# @Last Modified time: 2019-05-01 13:09:16
+# @Last Modified time: 2019-05-01 16:56:46
 
 import numpy as np
 import numpy.random as nr
@@ -28,7 +28,7 @@ def iterator(dataset, centers):
 	newcenters = np.array([np.mean(pos[i], axis=0) for i in range(len(pos))])
 	return newcenters, np.array(assignment)
 
-def plot(dataset, centers, assignment, name="plt_1.png"):
+def plot(dataset, centers, assignment, name="plt_1"):
 	plt.clf()
 	colors = ['b', 'g']
 	for i in range(2):
@@ -36,7 +36,8 @@ def plot(dataset, centers, assignment, name="plt_1.png"):
 		plt.scatter(dataset[idx, 0], dataset[idx, 1], marker='.', alpha=0.2, color=colors[i])
 	plt.scatter(centers[0:1, 0], centers[0:1, 1], marker='x', color=colors[0])
 	plt.scatter(centers[1:2, 0], centers[1:2, 1], marker='x', color=colors[1])
-	plt.savefig(name)
+	plt.title(name)
+	plt.savefig(name + ".png")
 
 def main():
 	n = 1000
